@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import AddTweet from "./components/AddTweet";
 import TweetsList from "./components/TweetsList";
-
-let username = "Gal";
+import NavBar from "./components/NavBar";
+import Profile from "./components/Profile";
 
 export default function App() {
-
   // for local storage
   // const [tweets, setTweets] = useState(() => {
   //   const savedTweets = localStorage.getItem("tweets");
@@ -29,16 +30,26 @@ export default function App() {
   //     createdAt: new Date().toISOString(),
   //   };
 
-  const [tweets, setTweets] = useState([]);
-
   const API_URL =
     "https://agsaphbcwazvuenwsnca.supabase.co/rest/v1/Tweets?apikey=sb_publishable_3kTDeTVg6NfWrboe7oMopA_X-cuT_ih";
+
+  // username (saved locally)
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem("username") || "Gal";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("username", username);
+  }, [username]);
+
+  // tweets from server
+  const [tweets, setTweets] = useState([]);
 
   useEffect(() => {
     async function fetchTweets() {
       const res = await fetch(API_URL);
       const data = await res.json();
-      setTweets(data);
+      setTweets([...data].sort((a, b) => new Date(b.date) - new Date(a.date)));
     }
     fetchTweets();
   }, []);
@@ -65,21 +76,37 @@ export default function App() {
   }
 
   return (
-    <>
-      <div>
-        <AddTweet onAdd={addTweet} />
-      </div>
+    <BrowserRouter>
+      <NavBar />
 
-      <div>
-        {tweets.map((tweet, index) => (
-          <TweetsList
-            key={tweet.id}
-            createdAt={tweet.date}
-            tweetContent={tweet.content}
-            username={tweet.userName}
-          />
-        ))}
-      </div>
-    </>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <div>
+                <AddTweet onAdd={addTweet} />
+              </div>
+
+              <div>
+                {tweets.map((tweet, index) => (
+                  <TweetsList
+                    key={tweet.id}
+                    createdAt={tweet.date}
+                    tweetContent={tweet.content}
+                    username={tweet.userName}
+                  />
+                ))}
+              </div>
+            </>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={<Profile username={username} setUsername={setUsername} />}
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
