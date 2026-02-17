@@ -76,7 +76,7 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/twitter/">
       <NavBar />
 
       <Routes>
